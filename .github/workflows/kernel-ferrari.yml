@@ -1,0 +1,77 @@
+name: Android 内核构建 - 真我 GT2 Pro LineageOS
+
+# 适配 Node.js 24
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      # ==================== KernelSU 配置 ====================
+      # KernelSU 变体固定为 ReSukiSU
+      kernelsu_branch:
+        description: "KSU 分支 (main/builtin/自定义commit hash，留空使用默认)"
+        required: false
+        type: string
+        default: ""
+
+      # ==================== 可选配置 ====================
+      version:
+        description: "自定义版本名 (可选)"
+        required: false
+        type: string
+      build_time:
+        description: "自定义构建时间 (可选，N或留空=当前UTC)"
+        required: false
+        type: string
+        default: "Sun Dec 01 08:10:00 UTC 2024"
+
+      # ==================== 功能开关 ====================
+      use_zram:
+        description: "启用 ZRAM 增强算法"
+        required: true
+        type: boolean
+        default: false
+      use_bbg:
+        description: "启用 BBG 防格机"
+        required: true
+        type: boolean
+        default: false
+      use_kpm:
+        description: "启用 KPM 功能"
+        required: true
+        type: boolean
+        default: false
+      cancel_susfs:
+        description: "禁用 SUSFS"
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  build-custom-kernel:
+    name: "Ferrari LineageOS custom kernel"
+    uses: ./.github/workflows/build-los.yml
+    secrets: inherit
+    with:
+      android_version: "android12"
+      kernel_version: "5.10"
+      sub_level: "239"
+      os_patch_level: "2025-05"
+      ksu_variant: "ReSukiSU"
+      ksu_branch: ${{ inputs.kernelsu_branch }}
+      version: ${{ inputs.version || '' }}
+      build_time: ${{ inputs.build_time || '' }}
+      use_zram: ${{ inputs.use_zram }}
+      use_bbg: ${{ inputs.use_bbg }}
+      use_kpm: ${{ inputs.use_kpm }}
+      supp_op: ${{ false }}
+      enable_susfs: ${{ !inputs.cancel_susfs }}
+
+  get-ksu-manager:
+    uses: ./.github/workflows/get-manager.yml
+    secrets: inherit
